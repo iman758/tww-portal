@@ -1,0 +1,126 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Customer {
+  id            Int        @id @default(autoincrement())
+  accountNumber String     @unique // e.g. CUST-10492
+  businessName  String     // e.g. Apex Tire & Auto
+  contactName   String     // e.g. Dave Miller
+  email         String
+  phone         String
+  address       String
+  city          String
+  state         String
+  zip           String
+  creditLimit   Float      @default(50000.0)
+  terms         String     @default("Net 30") // Net 30, Net 10th Proximo, COD
+  pin           String     @default("1234")
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  invoices      Invoice[]
+  payments      Payment[]
+  rmaClaims     RmaClaim[]
+
+  @@index([accountNumber])
+  @@index([businessName])
+}
+
+model Invoice {
+  id            Int           @id @default(autoincrement())
+  invoiceNumber String        @unique // e.g. INV-849201
+  customerId    Int
+  customer      Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  date          DateTime
+  dueDate       DateTime
+  status        String        // CURRENT, OVERDUE_30, OVERDUE_60, OVERDUE_90, PAID
+  subtotal      Float
+  tireFee       Float         @default(0.0) // State scrap/recycling fee ($2.50/tire)
+  freight       Float         @default(0.0) // Delivery/freight charge
+  total         Float
+  balanceDue    Float
+  poNumber      String?       // Customer PO #
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  items         InvoiceItem[]
+  payments      Payment[]
+  rmaClaims     RmaClaim[]
+
+  @@index([customerId])
+  @@index([invoiceNumber])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model InvoiceItem {
+  id             Int      @id @default(autoincrement())
+  invoiceId      Int
+  invoice        Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  tireBrand      String   // Goodyear, Michelin, etc.
+  pattern        String   // Assurance WeatherReady, Defender LTX M/S
+  size           String   // 225/65R17 102H
+  ply            String?  // Standard Load, Load Range E (10-Ply)
+  sku            String   // GY-2256517-AWR
+  qty            Int
+  wholesalePrice Float
+  extendedPrice  Float
+
+  @@index([invoiceId])
+}
+
+model Payment {
+  id                Int       @id @default(autoincrement())
+  paymentNumber     String    @unique // PAY-108291
+  customerId        Int
+  customer          Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  invoiceId         Int?
+  invoice           Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  amount            Float
+  method            String    // STRIPE_CARD, STRIPE_LINK, ZELLE, CHECK
+  status            String    // COMPLETED, PENDING_CLEARANCE, PENDING_VERIFICATION, FAILED
+  transactionId     String?   // Stripe pi_... or ch_...
+  checkNumber       String?
+  checkDate         DateTime?
+  zelleConfirmation String?
+  notes             String?
+  createdAt         DateTime  @default(now())
+
+  @@index([customerId])
+  @@index([invoiceId])
+  @@index([method])
+  @@index([status])
+}
+
+model RmaClaim {
+  id               Int       @id @default(autoincrement())
+  claimNumber      String    @unique // RMA-60291
+  customerId       Int
+  customer         Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  invoiceId        Int?
+  invoice          Invoice?  @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  tireBrand        String
+  tireSize         String
+  dotSerial        String    // DOT 6G9L 3J8R 1424
+  treadDepth       String    // 8/32", 10/32", New
+  reason           String    // Out-of-round / Ride vibration, Sidewall blister, Bead defect, Casing fault, Shipping error
+  photoUrl         String?
+  status           String    @default("SUBMITTED") // SUBMITTED, UNDER_INSPECTION, CREDIT_MEMO_ISSUED, REJECTED
+  creditAmount     Float?
+  creditMemoNumber String?   // CM-50123
+  notes            String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([customerId])
+  @@index([claimNumber])
+  @@index([status])
+}
+

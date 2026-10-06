@@ -1,0 +1,30 @@
+{
+  "name": "tww-customer-portal",
+  "version": "1.0.0",
+  "description": "Mobile-First B2B Customer Portal for TWW Distribution (Wholesale Tire Distributor)",
+  "private": true,
+  "scripts": {
+    "setup": "npm install && npm run db:setup && npm run seed",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "db:setup": "cd backend && npx prisma db push",
+    "seed": "cd backend && node prisma/seed.js",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build": "cd frontend && npm run build && cd ../backend && npx prisma generate",
+    "start": "cd backend && npm start"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "keywords": [
+    "tww-distribution",
+    "wholesale-tires",
+    "maddenco",
+    "b2b-portal",
+    "stripe-link"
+  ],
+  "author": "TWW Distribution Engineering",
+  "license": "UNLICENSED"
+}
+
