@@ -12,11 +12,7 @@
       "destination": "/index.html"
     }
   ],
-  "functions": {
-    "api/index.js": {
-      "includeFiles": "backend/dev.db"
-    }
-  },
+
   "env": {
     "JWT_SECRET": "tww_portal_super_secure_jwt_secret_maddenco_2026",
     "STRIPE_SECRET_KEY": "sk_test_51MockTWWDistributionSecretKey1234567890abcdef",
