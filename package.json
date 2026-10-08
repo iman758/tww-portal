@@ -3,16 +3,24 @@
   "version": "1.0.0",
   "description": "Mobile-First B2B Customer Portal for TWW Distribution (Wholesale Tire Distributor)",
   "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
     "setup": "npm install && npm run db:setup && npm run seed",
-    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "install:all": "npm install --include=dev && cd backend && npm install --include=dev && cd ../frontend && npm install --include=dev",
     "db:setup": "cd backend && npx prisma db push",
     "seed": "cd backend && node prisma/seed.js",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "build": "cd frontend && npm run build && cd ../backend && npx prisma generate",
+    "build": "cd frontend && npm install --include=dev && npm run build && cd ../backend && npx prisma generate",
     "start": "cd backend && npm start"
+  },
+  "dependencies": {
+    "prisma": "^5.14.0",
+    "vite": "^5.2.11"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
