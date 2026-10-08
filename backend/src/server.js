@@ -1,7 +1,8 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 
 const authRoutes = require('./routes/auth');
 const invoiceRoutes = require('./routes/invoices');
@@ -57,13 +58,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-if (process.env.NODE_ENV !== 'production') {
+if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`\n======================================================`);
     console.log(`🚀 TWW Distribution Portal API Server running on port ${PORT}`);
     console.log(`📍 Endpoint: http://localhost:${PORT}`);
     console.log(`💳 Stripe Integration: Active (US Cards & Stripe Link)`);
-    console.log(`📦 MaddenCo ERP Sync: Connected (SQLite Database)`);
+    console.log(`📦 MaddenCo ERP Sync: Connected`);
     console.log(`======================================================\n`);
   });
 }
