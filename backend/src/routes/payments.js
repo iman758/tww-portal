@@ -116,7 +116,7 @@ router.post('/stripe/confirm', authenticateToken, async (req, res) => {
     const transId = paymentIntentId || `ch_3P${Date.now()}mock`;
 
     const [payment, updatedInvoice] = await prisma.$transaction([
-      prisma.payment.create({
+      prisma.paymentTransaction.create({
         data: {
           paymentNumber: paymentNum,
           customerId,
@@ -168,11 +168,11 @@ router.get('/zelle-instructions', authenticateToken, (req, res) => {
 // POST /api/payments/zelle
 router.post('/zelle', authenticateToken, async (req, res) => {
   try {
-    const { invoiceId, amount, zelleConfirmation, senderName, memo } = req.body;
+    const { customerAccountNumber, invoiceNumber, amount, zelleReferenceId } = req.body;
     const customerId = req.customer.id;
 
-    if (!zelleConfirmation || !zelleConfirmation.trim()) {
-      return res.status(400).json({ error: 'Zelle Reference or Confirmation code is required.' });
+    if (!zelleReferenceId || !zelleReferenceId.trim()) {
+      return res.status(400).json({ error: 'Zelle Reference ID is required.' });
     }
 
     if (!amount || parseFloat(amount) <= 0) {
@@ -180,16 +180,16 @@ router.post('/zelle', authenticateToken, async (req, res) => {
     }
 
     let invoice = null;
-    if (invoiceId) {
+    if (invoiceNumber) {
       invoice = await prisma.invoice.findFirst({
-        where: { id: parseInt(invoiceId, 10), customerId },
+        where: { invoiceNumber: String(invoiceNumber), customerId },
       });
     }
 
     const payAmount = parseFloat(amount);
     const paymentNum = `PAY-${Date.now().toString().slice(-6)}`;
 
-    const payment = await prisma.payment.create({
+    const payment = await prisma.paymentTransaction.create({
       data: {
         paymentNumber: paymentNum,
         customerId,
@@ -197,15 +197,15 @@ router.post('/zelle', authenticateToken, async (req, res) => {
         amount: payAmount,
         method: 'ZELLE',
         status: 'PENDING_VERIFICATION',
-        zelleConfirmation: zelleConfirmation.trim(),
-        notes: `Zelle AR Submission. Sender: ${senderName || req.customer.contactName}. Memo: ${memo || 'Invoice Payment'}. Pending AR reconciliation.`,
+        zelleConfirmation: zelleReferenceId.trim(),
+        notes: `Zelle AR Submission for Invoice ${invoiceNumber || 'Account Balance'}. Pending AR reconciliation.`,
       },
     });
 
     res.json({
       success: true,
       payment,
-      message: `Zelle payment logged with Reference #${zelleConfirmation.trim()}. Our AR department will reconcile and credit your ledger shortly.`,
+      message: `Zelle payment logged with Reference #${zelleReferenceId.trim()}. Our AR department will reconcile and credit your ledger shortly.`,
     });
   } catch (error) {
     console.error('Submit Zelle error:', error);
@@ -238,7 +238,7 @@ router.post('/check', authenticateToken, async (req, res) => {
     const deliveryNote = deliveryMethod === 'driver' ? 'Handed to TWW Route Driver' : 'Mailed via USPS/Courier';
     const combinedNotes = `Check #${checkNumber.trim()} (${bankName || 'US Bank'}). ${deliveryNote}. ${notes || ''}`.trim();
 
-    const payment = await prisma.payment.create({
+    const payment = await prisma.paymentTransaction.create({
       data: {
         paymentNumber: paymentNum,
         customerId,
@@ -272,7 +272,7 @@ router.get('/', authenticateToken, async (req, res) => {
   try {
     const customerId = req.customer.id;
 
-    const payments = await prisma.payment.findMany({
+    const payments = await prisma.paymentTransaction.findMany({
       where: { customerId },
       orderBy: { createdAt: 'desc' },
       include: {

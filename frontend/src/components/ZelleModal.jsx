@@ -12,9 +12,9 @@ export default function ZelleModal({ customer, invoice, onClose, onSuccess }) {
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  const zelleEmail = 'ar@twwdistribution.com';
+  const zelleEmail = 'irshadpk332@yahoo.com';
   const zellePhone = '(800) 555-8473';
-  const zelleLegalName = 'TWW Distribution LLC';
+  const zelleLegalName = 'TWW Distribution, Inc.';
 
   const copyToClipboard = (text, field) => {
     navigator.clipboard.writeText(text);
@@ -40,11 +40,10 @@ export default function ZelleModal({ customer, invoice, onClose, onSuccess }) {
     setIsSubmitting(true);
     try {
       const res = await api.submitZellePayment({
-        invoiceId: invoice?.id || null,
+        customerAccountNumber: customer?.accountNumber,
+        invoiceNumber: invoice?.invoiceNumber || null,
         amount: numAmount,
-        zelleConfirmation: zelleConfirmation.trim(),
-        senderName: senderName.trim(),
-        memo: memo.trim(),
+        zelleReferenceId: zelleConfirmation.trim(),
       });
 
       setSuccessMsg(res.message || 'Zelle submission recorded successfully.');
