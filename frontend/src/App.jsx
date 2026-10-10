@@ -69,7 +69,7 @@ export default function App() {
 
   // Fetch Invoices & Aging whenever customer or filters change
   const refreshInvoicesAndFinancials = useCallback(async () => {
-    if (!customer) return;
+    if (!customer || customer.role === 'admin') return;
     setIsLoadingInvoices(true);
     try {
       const [invRes, agingRes] = await Promise.all([
