@@ -20,6 +20,13 @@ try {
 // 1. STRIPE & STRIPE LINK PAYMENTS
 // -------------------------------------------------------------
 
+// GET /api/payments/stripe/config
+router.get('/stripe/config', authenticateToken, (req, res) => {
+  res.json({
+    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || 'pk_test_TYooMQauvdEDq54NiTphI7jx'
+  });
+});
+
 // POST /api/payments/stripe/create-intent
 router.post('/stripe/create-intent', authenticateToken, async (req, res) => {
   try {

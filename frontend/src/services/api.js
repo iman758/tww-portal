@@ -71,6 +71,13 @@ export const api = {
   },
 
   // Payments
+  async getStripeConfig() {
+    const res = await fetch(`${API_BASE}/payments/stripe/config`, {
+      headers: getAuthHeaders(),
+    });
+    return handleResponse(res);
+  },
+
   async createStripeIntent(invoiceId, amount) {
     const res = await fetch(`${API_BASE}/payments/stripe/create-intent`, {
       method: 'POST',
