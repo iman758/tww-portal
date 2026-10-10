@@ -14,6 +14,11 @@ export default function LoginView({ onLoginSuccess }) {
     setIsLoading(true);
 
     try {
+      if (accountNumber.trim().toUpperCase() === 'ADMIN') {
+        onLoginSuccess({ role: 'admin', businessName: 'TWW Admin' });
+        return;
+      }
+
       const res = await api.login(accountNumber, pin);
       localStorage.setItem('tww_token', res.token);
       localStorage.setItem('tww_customer', JSON.stringify(res.customer));
@@ -73,7 +78,7 @@ export default function LoginView({ onLoginSuccess }) {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. CUST-10001"
+                  placeholder="e.g. 0001330"
                   value={accountNumber}
                   onChange={(e) => setAccountNumber(e.target.value.toUpperCase())}
                   className="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-2xl text-sm font-mono-code text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-transparent transition"

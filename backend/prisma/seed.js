@@ -80,7 +80,7 @@ async function main() {
   // Clear existing tables
   console.log('🧹 Cleaning existing data...');
   await prisma.rmaClaim.deleteMany({});
-  await prisma.payment.deleteMany({});
+  await prisma.paymentTransaction.deleteMany({});
   await prisma.invoiceItem.deleteMany({});
   await prisma.invoice.deleteMany({});
   await prisma.customer.deleteMany({});
@@ -353,7 +353,7 @@ async function main() {
 
   for (let i = 0; i < paymentsData.length; i += BATCH_SIZE) {
     const chunk = paymentsData.slice(i, i + BATCH_SIZE);
-    await prisma.payment.createMany({ data: chunk });
+    await prisma.paymentTransaction.createMany({ data: chunk });
   }
   console.log(`✅ Seeded ${paymentsData.length} payment records.`);
 

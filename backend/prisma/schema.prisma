@@ -9,25 +9,34 @@ generator client {
 }
 
 model Customer {
-  id            Int        @id @default(autoincrement())
-  accountNumber String     @unique // e.g. CUST-10492
-  businessName  String     // e.g. Apex Tire & Auto
-  contactName   String     // e.g. Dave Miller
-  email         String
-  phone         String
-  address       String
-  city          String
-  state         String
-  zip           String
-  creditLimit   Float      @default(50000.0)
-  terms         String     @default("Net 30") // Net 30, Net 10th Proximo, COD
-  pin           String     @default("1234")
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  id              Int        @id @default(autoincrement())
+  accountNumber   String     @unique // e.g. 0001330
+  businessName    String     // e.g. AMERICAN AUTO CARE & TIRES
+  contactName     String?    
+  email           String?
+  phone           String?
+  address         String?
+  city            String?
+  state           String?
+  zip             String?
+  creditLimit     Float      @default(0.0)
+  terms           String     @default("Net 30")
+  pin             String     @default("1234")
+  
+  // Aging buckets from Daily Report
+  futureBalance   Float      @default(0.0)
+  currentBalance  Float      @default(0.0)
+  pastDue0130     Float      @default(0.0)
+  pastDue3160     Float      @default(0.0)
+  pastDueOver61   Float      @default(0.0)
+  totalDue        Float      @default(0.0)
 
-  invoices      Invoice[]
-  payments      Payment[]
-  rmaClaims     RmaClaim[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  invoices        Invoice[]
+  payments        PaymentTransaction[]
+  rmaClaims       RmaClaim[]
 
   @@index([accountNumber])
   @@index([businessName])
@@ -35,24 +44,25 @@ model Customer {
 
 model Invoice {
   id            Int           @id @default(autoincrement())
-  invoiceNumber String        @unique // e.g. INV-849201
+  invoiceNumber String        @unique // e.g. 0010071699
   customerId    Int
   customer      Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
   date          DateTime
   dueDate       DateTime
   status        String        // CURRENT, OVERDUE_30, OVERDUE_60, OVERDUE_90, PAID
-  subtotal      Float
-  tireFee       Float         @default(0.0) // State scrap/recycling fee ($2.50/tire)
-  freight       Float         @default(0.0) // Delivery/freight charge
-  total         Float
-  balanceDue    Float
-  poNumber      String?       // Customer PO #
+  agingBucket   String?       // Future, Current, 01-30, 31-60, Over 61
+  subtotal      Float         @default(0.0)
+  tireFee       Float         @default(0.0)
+  freight       Float         @default(0.0)
+  total         Float         @default(0.0)
+  balanceDue    Float         @default(0.0)
+  poNumber      String?
   notes         String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
   items         InvoiceItem[]
-  payments      Payment[]
+  payments      PaymentTransaction[]
   rmaClaims     RmaClaim[]
 
   @@index([customerId])
@@ -77,7 +87,7 @@ model InvoiceItem {
   @@index([invoiceId])
 }
 
-model Payment {
+model PaymentTransaction {
   id                Int       @id @default(autoincrement())
   paymentNumber     String    @unique // PAY-108291
   customerId        Int

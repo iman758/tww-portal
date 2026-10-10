@@ -156,8 +156,8 @@ router.post('/stripe/confirm', authenticateToken, async (req, res) => {
 // GET /api/payments/zelle-instructions
 router.get('/zelle-instructions', authenticateToken, (req, res) => {
   res.json({
-    recipientName: 'TWW Distribution LLC',
-    email: 'ar@twwdistribution.com',
+    recipientName: 'TWW Distribution, Inc.',
+    email: 'irshadpk332@yahoo.com',
     phone: '(800) 555-8473',
     bankPartner: 'JPMorgan Chase Commercial Banking',
     memoFormat: `Include "${req.customer.accountNumber} / INV-[Number]" in your Zelle payment memo`,

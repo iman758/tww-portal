@@ -39,6 +39,8 @@ app.use('/api/invoices', invoiceRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/rma', rmaRoutes);
 app.use('/api/customers', customerRoutes);
+app.use('/api/upload', require('./routes/upload'));
+app.use('/api/admin', require('./routes/admin'));
 
 // In production, serve Vite client build
 if (process.env.NODE_ENV === 'production') {

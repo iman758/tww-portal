@@ -11,6 +11,7 @@ import RmaTab from './components/RmaTab';
 import PaymentsTab from './components/PaymentsTab';
 import AccountProfileTab from './components/AccountProfileTab';
 import LoginView from './components/LoginView';
+import AdminPanel from './components/AdminPanel';
 import DemoSwitcherModal from './components/DemoSwitcherModal';
 import { api } from './services/api';
 
@@ -137,6 +138,10 @@ export default function App() {
 
   if (!customer) {
     return <LoginView onLoginSuccess={(cust) => setCustomer(cust)} />;
+  }
+
+  if (customer.role === 'admin') {
+    return <AdminPanel onLogout={handleLogout} />;
   }
 
   return (

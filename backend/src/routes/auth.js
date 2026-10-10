@@ -6,45 +6,45 @@ const { authenticateToken, JWT_SECRET } = require('../middleware/auth');
 
 // Helper to compute live balances for a customer
 async function getCustomerFinancialSummary(customerId, creditLimit) {
-  const unpaidInvoices = await prisma.invoice.findMany({
-    where: {
-      customerId,
-      status: { not: 'PAID' },
-    },
+  const customer = await prisma.customer.findUnique({
+    where: { id: customerId },
     select: {
-      balanceDue: true,
-      status: true,
-      dueDate: true,
-    },
+      futureBalance: true,
+      currentBalance: true,
+      pastDue0130: true,
+      pastDue3160: true,
+      pastDueOver61: true,
+      totalDue: true
+    }
   });
 
-  const now = new Date();
-  let totalBalance = 0;
-  let currentBalance = 0;
-  let overdueBalance = 0;
-  let overdueCount = 0;
-
-  for (const inv of unpaidInvoices) {
-    totalBalance += inv.balanceDue;
-    if (new Date(inv.dueDate) < now) {
-      overdueBalance += inv.balanceDue;
-      overdueCount++;
-    } else {
-      currentBalance += inv.balanceDue;
+  const unpaidCount = await prisma.invoice.count({
+    where: {
+      customerId,
+      status: { not: 'PAID' }
     }
-  }
+  });
 
-  totalBalance = Math.round(totalBalance * 100) / 100;
-  currentBalance = Math.round(currentBalance * 100) / 100;
-  overdueBalance = Math.round(overdueBalance * 100) / 100;
-  const availableCredit = Math.max(0, Math.round((creditLimit - totalBalance) * 100) / 100);
+  const overdueCount = await prisma.invoice.count({
+    where: {
+      customerId,
+      status: { in: ['OVERDUE_01', 'OVERDUE_31', 'OVERDUE_OVER'] } // simplified representation
+    }
+  });
+
+  const overdueBalance = customer.pastDue0130 + customer.pastDue3160 + customer.pastDueOver61;
+  const availableCredit = Math.max(0, Math.round((creditLimit - customer.totalDue) * 100) / 100);
 
   return {
-    totalBalance,
-    currentBalance,
-    overdueBalance,
+    totalBalance: customer.totalDue,
+    currentBalance: customer.currentBalance,
+    futureBalance: customer.futureBalance,
+    pastDue0130: customer.pastDue0130,
+    pastDue3160: customer.pastDue3160,
+    pastDueOver61: customer.pastDueOver61,
+    overdueBalance: Math.round(overdueBalance * 100) / 100,
     overdueCount,
-    unpaidCount: unpaidInvoices.length,
+    unpaidCount,
     availableCredit,
   };
 }
@@ -55,13 +55,10 @@ router.post('/login', async (req, res) => {
     let { accountNumber, pin } = req.body;
 
     if (!accountNumber) {
-      return res.status(400).json({ error: 'MaddenCo Account Number is required (e.g. CUST-10001).' });
+      return res.status(400).json({ error: 'MaddenCo Account Number is required (e.g. 0001330).' });
     }
 
-    accountNumber = accountNumber.trim().toUpperCase();
-    if (!accountNumber.startsWith('CUST-') && /^\d+$/.test(accountNumber)) {
-      accountNumber = `CUST-${accountNumber}`;
-    }
+    accountNumber = accountNumber.trim();
 
     const customer = await prisma.customer.findUnique({
       where: { accountNumber },
